@@ -2,7 +2,7 @@
 
 Live view of contributor activity, repository health, and cross-team collaboration across OpenGov Africa's 29+ open source repositories — built to answer a question the team kept running into: who's doing what, and is it working.
 
-[Live demo](#) · [Tracking issue](#) · [Report an issue](#)
+[Live demo](#) · [Tracking issue](https://github.com/OpenGovAfrica/oga-contributor-dashboard/issues/1) · [Report an issue](https://github.com/OpenGovAfrica/oga-contributor-dashboard/issues)
 
 ## Why this exists
 
@@ -75,11 +75,11 @@ npm run dev
 
 ## Roadmap
 
-v1 scope and progress are tracked in [the v1 tracking issue](#). Planned next: a GitHub App with webhooks for real-time sync, GitHub OAuth, contribution points/achievements, and embeddable contributor badges.
+v1 scope and progress are tracked in [the v1 tracking issue](https://github.com/OpenGovAfrica/oga-contributor-dashboard/issues/1). Planned next: a GitHub App with webhooks for real-time sync, GitHub OAuth, contribution points/achievements, and embeddable contributor badges.
 
 ## Contributing
 
-Issues and PRs are welcome — start with the [tracking issue](#) for current priorities. See `CONTRIBUTING.md` before opening a PR.
+Issues and PRs are welcome — start with the [tracking issue](https://github.com/OpenGovAfrica/oga-contributor-dashboard/issues/1) for current priorities. See `CONTRIBUTING.md` before opening a PR.
 
 ## Maintainers
 
