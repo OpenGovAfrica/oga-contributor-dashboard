@@ -6,16 +6,17 @@ Live view of contributor activity, repository health, and cross-team collaborati
 
 ## Why this exists
 
-OGA's work is spread across 29+ repositories and several working groups, with no single place to see contributor activity, repository health, or how issue-based work is progressing across teams. Early feedback from the team also surfaced a specific gap: git-based metrics like commits and PRs make non-engineering teams look inactive, even when they're doing real work through issues. This dashboard was built to fix both problems.
+OGA's work is spread across 29+ repositories and several working groups, with no single place to see contributor activity, repository health, or how issue-based work is progressing across teams. Early feedback from the team also surfaced a specific gap: git-based metrics like commits and PRs make non-engineering teams look inactive, even when they're doing real work through issues. This dashboard was built to fix both problems, while also providing leadership with professional, exportable reports.
 
 ## Features
 
-- **Overview** — org-wide KPIs (contributors, active repositories, PR merge velocity, issue resolution rate), with a toggle between code activity and issue analytics, team distribution, and sync status.
+- **Overview & Executive Reporting** — org-wide KPIs (contributors, active repositories, PR merge velocity, issue resolution rate), with a toggle between code activity and issue analytics. Includes a dedicated A4-optimized Executive PDF Report generator (`/report`) for stakeholder updates.
 - **Repositories** — health matrix across all repos with automatic Healthy / Degraded / Stalled status, filterable by team and language.
-- **Contributors & leaderboard** — cross-repository contributor profiles and a weighted leaderboard, so contributions aren't trapped in a single repo's view.
-- **Teams** — working-group breakdowns with a filter that recalculates every page's metrics by team.
-- **Issue & collaboration analytics** — issue funnel and backlog trend, an aging report for stale issues, a work-category breakdown by label, and PR cycle time. This is the page that makes non-code contribution visible.
-- **Settings** — platform preferences and organization configuration.
+- **Contributors & Leaderboard** — cross-repository contributor profiles and a weighted leaderboard, so contributions aren't trapped in a single repo's view.
+- **Teams & Cross-Team Synergy** — working-group breakdowns with a filter that recalculates every page's metrics by team. Features a Cross-Team Synergy matrix to visualize collaboration between different working groups (e.g., Engineering & Marketing).
+- **Issue & Collaboration Analytics** — issue funnel and backlog trend, an aging report for stale issues, a work-category breakdown by label, and PR cycle time. This is the page that makes non-code contribution visible.
+- **Smart Background Sync** — non-blocking, reliable GitHub API data ingestion with rate-limit protection and visual time-estimates.
+- **Settings & UI Polish** — platform preferences, organization configuration, dark/light mode, smooth glassmorphism modals, and dynamic trend line toggles.
 
 ## Tech stack
 
