@@ -5,9 +5,8 @@ import prisma from "@/lib/prisma";
 
 export async function POST(req: Request) {
   try {
-    // Note: For Phase 1, we can optionally check an Authorization header 
-    // to protect this route from spam, e.g. a CRON_SECRET.
-    // We'll skip strict auth for local testing right now.
+    // TODO(v2): Implement strict CRON_SECRET authorization headers to prevent unauthenticated trigger spam.
+    // For local MVP execution, bypassing auth block.
 
     const result = await runGitHubSync();
     return NextResponse.json(result, { status: 200 });

@@ -33,7 +33,8 @@ export async function runGitHubSync() {
   const startTime = Date.now();
 
   try {
-    // 1. Ensure Organization exists in DB
+    /* --- Organization Reconciliation --- */
+    // Synchronize core organization identity before processing nested resources.
     const orgData = await octokit.rest.orgs.get({ org: ORG_LOGIN });
     const org = await prisma.organization.upsert({
       where: { githubLogin: ORG_LOGIN },
@@ -50,7 +51,8 @@ export async function runGitHubSync() {
       },
     });
 
-    // 1.5 Ensure core OGA Teams exist
+    /* --- Working Group Matrix --- */
+    // Pre-populate established OGA working groups to enable cross-team synergy analytics.
     const TEAMS = [
       { slug: "wg-dev", displayName: "Working Group: Engineering", color: "#6366f1" },
       { slug: "wg-data", displayName: "Working Group: Data", color: "#06b6d4" },
@@ -86,8 +88,8 @@ export async function runGitHubSync() {
       return "wg-dev"; 
     }
 
-    // 2. Fetch Top Active Repositories
-    // Sort by pushed to get the ones that actually have activity
+    /* --- Repository Discovery --- */
+    // Optimize synchronization bandwidth by prioritizing repositories with recent push activity.
     const reposData = await octokit.rest.repos.listForOrg({
       org: ORG_LOGIN,
       type: "public",
@@ -133,7 +135,9 @@ export async function runGitHubSync() {
         },
       });
 
-      // 3. Fetch Recent Issues & PRs
+      /* --- Issue & PR Ingestion --- */
+      // GitHub's REST API conflates PRs and Issues in this endpoint. We parse the payload 
+      // dynamically to separate civic engagement (Issues) from engineering velocity (PRs).
       const issuesData = await octokit.paginate(octokit.rest.issues.listForRepo, {
         owner: ORG_LOGIN,
         repo: repo.name,
@@ -143,7 +147,7 @@ export async function runGitHubSync() {
       });
 
       for (const issue of issuesData) {
-        // Upsert Author as Contributor
+        // Ensure author identity exists before associating contributions
         const authorUser = issue.user;
         if (!authorUser) continue;
         
@@ -157,8 +161,7 @@ export async function runGitHubSync() {
           },
         });
 
-        // Upsert Issue (Only actual issues, ignore PRs from this endpoint if needed, or handle PRs separately)
-        // GitHub API returns PRs in the issues endpoint, PRs have `pull_request` key
+        // Isolate pure issues to track operational bandwidth for non-engineering teams.
         if (!issue.pull_request) {
           await prisma.issue.upsert({
             where: {
@@ -188,7 +191,7 @@ export async function runGitHubSync() {
             },
           });
 
-          // Record ISSUE_OPENED contribution
+          // Track 'Issue Opened' as a distinct civic contribution metric
           const existingOpenedContrib = await prisma.contribution.findFirst({
             where: { repositoryId: dbRepo.id, type: "ISSUE_OPENED", githubUrl: issue.html_url }
           });
@@ -205,7 +208,7 @@ export async function runGitHubSync() {
              });
           }
         } else {
-          // Record PULL_REQUEST contribution
+          // Handle PR specific velocity metrics, extracting merged state directly from the issue payload
           const existingPrContrib = await prisma.contribution.findFirst({
             where: { repositoryId: dbRepo.id, type: "PULL_REQUEST", githubUrl: issue.html_url }
           });
@@ -252,7 +255,7 @@ export async function runGitHubSync() {
         }
       }
 
-      // 4. Fetch Recent Commits
+      /* --- Commit Velocity Ingestion --- */
       try {
         const commitsData = await octokit.paginate(octokit.rest.repos.listCommits, {
           owner: ORG_LOGIN,
@@ -278,8 +281,8 @@ export async function runGitHubSync() {
           // Create Contribution
           const committedAt = commit.commit.author?.date ? new Date(commit.commit.author.date) : new Date();
           
-          // Using a simple check to avoid duplicates. Since we don't have a unique constraint on sha in Contribution, 
-          // we use findFirst. Ideally, sha should be unique per repo.
+          // Idempotency check: Ensure commits are not double-counted across sync executions.
+          // Note: In a heavily scaled v2, we should enforce a unique composite constraint on (repositoryId, sha) at the DB level.
           const existing = await prisma.contribution.findFirst({
             where: { repositoryId: dbRepo.id, sha: commit.sha },
           });
@@ -320,7 +323,8 @@ export async function runGitHubSync() {
         console.error(`Error fetching commits for ${repo.name}:`, err);
       }
 
-      // 5. Fetch Recent Comments (Non-Code Civic Engagement)
+      /* --- Non-Code Civic Engagement --- */
+      // Track issue discussions as a primary contribution vector for strategy and marketing teams.
       try {
         const commentsData = await octokit.rest.issues.listCommentsForRepo({
           owner: ORG_LOGIN,
@@ -393,7 +397,8 @@ export async function runGitHubSync() {
       }
     }
 
-    // 6. Backdate Contributor Tenure
+    /* --- Contributor Tenure Backfill --- */
+    // Execute a batch update to accurately reflect the earliest known interaction per contributor.
     await prisma.$executeRaw`
       UPDATE "Contributor"
       SET "firstSeenAt" = subquery.min_date
@@ -406,7 +411,8 @@ export async function runGitHubSync() {
       AND "Contributor"."firstSeenAt" > subquery.min_date;
     `;
 
-    // 7. Calculate Viral Streaks (Gaps and Islands algorithm)
+    /* --- Viral Streak Calculation --- */
+    // Leverages a standard Gaps-and-Islands SQL architecture to compute continuous daily contribution streaks globally.
     await prisma.$executeRaw`
       WITH daily_activity AS (
         SELECT DISTINCT "contributorId", DATE("committedAt") AS activity_date
@@ -446,7 +452,8 @@ export async function runGitHubSync() {
       WHERE c.id = ms."contributorId";
     `;
 
-    // 8. Update System State & Track Rate Limits
+    /* --- Telemetry & State Management --- */
+    // Persist API rate limits and execution latencies to enable keep-alive polling on the client side.
     const rateLimit = await octokit.rest.rateLimit.get();
     const latency = Date.now() - startTime;
 
