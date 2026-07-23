@@ -1,0 +1,200 @@
+// prisma/schema.prisma
+// Prisma 7: URL is configured in prisma.config.ts, not here.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Organization ──────────────────────────────────────────────────────────────
+
+model Organization {
+  id          String   @id @default(cuid())
+  githubLogin String   @unique
+  name        String
+  avatarUrl   String?
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  teams        Team[]
+  repositories Repository[]
+  contributors Contributor[]
+}
+
+// ─── Teams (Working Groups) ────────────────────────────────────────────────────
+
+model Team {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  displayName String
+  description String?
+  color       String?
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String
+
+  repositories Repository[]
+  members      TeamMember[]
+
+  @@index([organizationId])
+}
+
+model TeamMember {
+  id       String   @id @default(cuid())
+  role     TeamRole @default(MEMBER)
+  joinedAt DateTime @default(now())
+
+  team          Team        @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId        String
+  contributor   Contributor @relation(fields: [contributorId], references: [id], onDelete: Cascade)
+  contributorId String
+
+  @@unique([teamId, contributorId])
+  @@index([teamId])
+  @@index([contributorId])
+}
+
+enum TeamRole {
+  LEAD
+  MEMBER
+}
+
+// ─── Repositories ──────────────────────────────────────────────────────────────
+
+model Repository {
+  id              String   @id @default(cuid())
+  githubRepoId    Int      @unique
+  nameWithOwner   String   @unique
+  name            String
+  description     String?
+  isPrivate       Boolean  @default(false)
+  primaryLanguage String?
+  stargazerCount  Int      @default(0)
+  forkCount       Int      @default(0)
+  defaultBranch   String   @default("main")
+  createdAt       DateTime
+  updatedAt       DateTime
+  syncedAt        DateTime @default(now())
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String
+  team           Team?        @relation(fields: [teamId], references: [id])
+  teamId         String?
+
+  contributions Contribution[]
+  issues        Issue[]
+
+  @@index([organizationId])
+  @@index([teamId])
+  @@index([updatedAt])
+}
+
+// ─── Contributors ──────────────────────────────────────────────────────────────
+
+model Contributor {
+  id           String   @id @default(cuid())
+  githubLogin  String   @unique
+  name         String?
+  avatarUrl    String?
+  email        String?
+  company      String?
+  location     String?
+  bio          String?
+  firstSeenAt  DateTime @default(now())
+  lastActiveAt DateTime @default(now())
+  currentStreak Int      @default(0)
+  longestStreak Int      @default(0)
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String
+
+  teamMemberships TeamMember[]
+  contributions   Contribution[]
+  issuesOpened    Issue[]        @relation("IssueOpener")
+  issuesClosed    Issue[]        @relation("IssueCloser")
+
+  @@index([organizationId])
+  @@index([lastActiveAt])
+}
+
+// ─── Contributions ─────────────────────────────────────────────────────────────
+
+model Contribution {
+  id           String           @id @default(cuid())
+  type         ContributionType
+  title        String?
+  githubUrl    String?
+  sha          String?
+  additions    Int              @default(0)
+  deletions    Int              @default(0)
+  changedFiles Int              @default(0)
+  mergedAt     DateTime?
+  committedAt  DateTime
+
+  contributor   Contributor @relation(fields: [contributorId], references: [id], onDelete: Cascade)
+  contributorId String
+  repository    Repository  @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  repositoryId  String
+
+  @@index([contributorId])
+  @@index([repositoryId])
+  @@index([committedAt])
+  @@index([type])
+}
+
+enum ContributionType {
+  COMMIT
+  PULL_REQUEST
+  REVIEW
+  ISSUE_OPENED
+  ISSUE_COMMENT
+}
+
+// ─── Issues ────────────────────────────────────────────────────────────────────
+
+model Issue {
+  id           String     @id @default(cuid())
+  githubNumber Int
+  title        String
+  state        IssueState
+  githubUrl    String?
+  labels       String[]
+  openedAt     DateTime
+  closedAt     DateTime?
+  commentCount Int        @default(0)
+  lastCommentAt DateTime?
+
+  repository   Repository  @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  repositoryId String
+  opener       Contributor @relation("IssueOpener", fields: [openerId], references: [id])
+  openerId     String
+  closer       Contributor? @relation("IssueCloser", fields: [closerId], references: [id])
+  closerId     String?
+
+  @@unique([repositoryId, githubNumber])
+  @@index([repositoryId])
+  @@index([state])
+  @@index([openedAt])
+}
+
+enum IssueState {
+  OPEN
+  CLOSED
+}
+
+// ─── System State ─────────────────────────────────────────────────────────────
+
+model SystemState {
+  id               Int      @id @default(1)
+  lastSyncAt       DateTime @default(now())
+  rateLimitUsed    Int      @default(0)
+  rateLimitTotal    Int      @default(5000)
+  lastSyncLatencyMs Int      @default(0)
+  targetOrg         String   @default("OpenGovAfrica")
+  syncLookbackDays  Int      @default(30)
+  autoSyncFrequency String   @default("manual")
+}
