@@ -316,9 +316,7 @@ async function main() {
   const regularContributors = contributorRecords.slice(coreCount);
 
   let totalContributions = 0;
-  // Concentrate mock data in the last 90 days so the dashboard looks hyper-active!
-  const seedStart = new Date();
-  seedStart.setDate(seedStart.getDate() - 90);
+  const seedStart = new Date("2024-01-01");
   const seedEnd = new Date();
 
   async function createContributionsForContributor(
@@ -407,8 +405,8 @@ async function main() {
     for (let i = 0; i < issueCount; i++) {
       const opener = randomItem(contributorRecords);
       const openedAt = faker.date.between({
-        from: seedStart,
-        to: seedEnd,
+        from: new Date("2024-01-01"),
+        to: new Date(),
       });
 
       const isClosed = Math.random() < 0.65;

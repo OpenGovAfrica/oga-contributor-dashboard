@@ -4,15 +4,14 @@ import type { TimeWindow, TeamSlug } from "@/lib/zod-schemas";
 export type { TimeWindow, TeamSlug };
 
 export interface OrgKPIResult {
-  totalContributors: number;
-  activeRepositories: number;
+  activeContributors: number;
   totalCommits: number;
-  openIssues: number;
+  prsOpened: number;
+  prsMerged: number;
+  issuesOpened: number;
+  issuesClosed: number;
   // Deltas vs previous equivalent window
-  contributorsDelta: number;
-  activeReposDelta: number;
   commitsDelta: number;
-  openIssuesDelta: number;
 }
 
 export interface VelocityDataPoint {

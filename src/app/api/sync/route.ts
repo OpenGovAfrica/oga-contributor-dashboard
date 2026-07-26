@@ -1,5 +1,6 @@
 // src/app/api/sync/route.ts
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { runGitHubSync } from "@/lib/github-sync";
 import prisma from "@/lib/prisma";
 
@@ -9,6 +10,10 @@ export async function POST(req: Request) {
     // For local MVP execution, bypassing auth block.
 
     const result = await runGitHubSync();
+    
+    // Purge the entire Next.js Router Cache globally so the dashboard instantly shows fresh data
+    revalidatePath("/", "layout");
+
     return NextResponse.json(result, { status: 200 });
   } catch (error: any) {
     console.error("[API] Sync error:", error);

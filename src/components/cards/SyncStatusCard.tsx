@@ -52,14 +52,6 @@ export function SyncStatusCard() {
           <span className="text-sm font-medium">GitHub Sync</span>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={handleSync}
-            disabled={isSyncing}
-            className="flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-medium bg-[var(--color-panel-raised)] text-[var(--color-text-secondary)] border border-[var(--color-border)] hover:bg-[var(--color-overlay)] transition-colors disabled:opacity-50"
-          >
-            <RefreshCw className={cn("w-3 h-3", isSyncing && "animate-spin")} />
-            {isSyncing ? "Syncing..." : "Refresh Data"}
-          </button>
           <span
             className={cn(
               "px-2 py-0.5 rounded text-[10px] font-medium border",

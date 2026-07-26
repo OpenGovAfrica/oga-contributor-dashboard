@@ -5,11 +5,10 @@ import { Users, FolderGit2, GitPullRequest, CheckCircle2, ExternalLink, FileText
 import { Topbar } from "@/components/layout/Topbar";
 import { MetricCard } from "@/components/cards/MetricCard";
 import { ActivityTabsSection } from "@/components/charts/ActivityTabsSection";
-import { SyncStatusCard } from "@/components/cards/SyncStatusCard";
 import { TeamDistributionWidget } from "@/components/cards/TeamDistributionWidget";
 import { MetricCardSkeleton, ChartSkeleton } from "@/components/shared/LoadingSkeleton";
 import { MiniSparkline } from "@/components/charts/MiniSparkline";
-import { getOrgKPIs, getVelocityTrend, getTeamDistribution, getIssueAnalytics } from "@/features/overview/queries";
+import { getOrgKPIs, getVelocityTrend, getTeamDistribution, getIssueAnalytics, getRecentPullRequests } from "@/features/overview/queries";
 import { getRepoHealthMatrix } from "@/features/repositories/queries";
 import { formatNumber, formatRelativeDate } from "@/lib/utils";
 import type { TimeWindow } from "@/lib/zod-schemas";
@@ -60,36 +59,43 @@ export default async function OverviewPage({ searchParams }: PageProps) {
           <KPISection window={window} />
         </Suspense>
 
-        {/* Charts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Charts & PRs Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-stretch">
           <div className="lg:col-span-3 panel p-5">
             <Suspense fallback={<div className="h-[350px] skeleton rounded-lg" />}>
               <VelocitySection window={window} />
             </Suspense>
           </div>
-
-          <div className="lg:col-span-1 flex flex-col gap-6">
-            <SyncStatusCard />
-            <Suspense fallback={<div className="h-[200px] skeleton rounded-lg" />}>
-              <TeamDistSection window={window} />
+          <div className="lg:col-span-1">
+            <Suspense fallback={<div className="h-full skeleton rounded-lg" />}>
+              <RecentPRSection window={window} />
             </Suspense>
           </div>
         </div>
 
-        {/* Repository Explorer */}
-        <div className="panel overflow-hidden">
-          <div className="p-4 border-b border-[var(--color-border)] flex items-center justify-between">
-            <h3 className="text-sm font-medium text-[var(--color-text-primary)]">Repository Explorer</h3>
-            <div className="flex items-center gap-3">
-              <SearchInput placeholder="Filter repositories..." className="w-[240px]" />
-              <button className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-[var(--color-border)] text-xs font-medium text-[var(--color-text-primary)] hover:bg-[var(--color-panel-raised)] transition-colors">
-                <Filter className="w-3.5 h-3.5" /> Filter
-              </button>
+        {/* Repos & Teams Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+          <div className="lg:col-span-3 panel overflow-hidden h-full flex flex-col">
+            <div className="p-4 border-b border-[var(--color-border)] flex items-center justify-between shrink-0">
+              <h3 className="text-sm font-medium text-[var(--color-text-primary)]">Repository Explorer</h3>
+              <div className="flex items-center gap-3">
+                <SearchInput placeholder="Filter repositories..." className="w-[240px]" />
+                <button className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-[var(--color-border)] text-xs font-medium text-[var(--color-text-primary)] hover:bg-[var(--color-panel-raised)] transition-colors">
+                  <Filter className="w-3.5 h-3.5" /> Filter
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-auto">
+              <Suspense fallback={<div className="h-[300px] skeleton" />}>
+                <RepoTablePreview window={window} />
+              </Suspense>
             </div>
           </div>
-          <Suspense fallback={<div className="h-[300px] skeleton" />}>
-            <RepoTablePreview window={window} />
-          </Suspense>
+          <div className="lg:col-span-1">
+            <Suspense fallback={<div className="h-[200px] skeleton rounded-lg" />}>
+              <TeamDistSection window={window} />
+            </Suspense>
+          </div>
         </div>
       </div>
     </div>
@@ -101,61 +107,51 @@ export default async function OverviewPage({ searchParams }: PageProps) {
 async function KPISection({ window }: { window: TimeWindow }) {
   const kpis = await getOrgKPIs(window);
   
-  // Dummy data for sparklines to match design
+  // Dummy data for sparklines to match design (these represent volume trends, not deltas)
   const spark1 = [10, 25, 15, 30, 45, 20, 60];
   const spark2 = [5, 10, 15, 12, 20, 25, 28];
-  const spark3 = [40, 35, 25, 20, 15, 10, 5];
-
-  // Dummy close ratio percentage for the 4th card
-  const resolutionRate = 88;
 
   return (
     <div className="grid grid-cols-4 gap-4">
       <MetricCard
-        id="kpi-total-contributors"
-        title="TOTAL CONTRIBUTORS"
-        value={formatNumber(kpis.totalContributors)}
-        delta={12} // hardcoded to match design's +12%
-        deltaLabel="vs last month"
+        id="kpi-active-contributors"
+        title="ACTIVE CONTRIBUTORS"
+        value={formatNumber(kpis.activeContributors)}
         icon={Users}
       >
         <MiniSparkline data={spark1} color="var(--color-brand)" type="bar" />
       </MetricCard>
 
       <MetricCard
-        id="kpi-active-repos"
-        title="ACTIVE REPOSITORIES"
-        value={kpis.activeRepositories}
-        delta={2}
-        deltaLabel="new this week"
+        id="kpi-total-commits"
+        title="TOTAL COMMITS"
+        value={formatNumber(kpis.totalCommits)}
+        delta={kpis.commitsDelta > 0 ? kpis.commitsDelta : undefined}
+        deltaLabel={kpis.commitsDelta > 0 ? "vs previous period" : undefined}
         icon={FolderGit2}
       >
         <MiniSparkline data={spark2} color="var(--color-brand)" type="bar" />
       </MetricCard>
 
       <MetricCard
-        id="kpi-merge-velocity"
-        title="PR MERGE VELOCITY"
-        value={"1.1 d"}
-        delta={-8}
-        deltaLabel="vs last month"
+        id="kpi-pull-requests"
+        title="PULL REQUESTS"
+        value={formatNumber(kpis.prsOpened)}
         icon={GitPullRequest}
-        inverse // lower is better
       >
-        <MiniSparkline data={spark3} color="#a1a1aa" type="bar" />
+        <div className="flex flex-col gap-1 text-[10px] text-[var(--color-text-muted)] text-right mt-1 font-medium">
+          <div className="flex items-center justify-end gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[var(--color-brand)]"/> Merged: {formatNumber(kpis.prsMerged)}</div>
+        </div>
       </MetricCard>
 
       <MetricCard
-        id="kpi-resolution-rate"
-        title="ISSUE RESOLUTION RATE"
-        value={`${resolutionRate}%`}
-        delta={4}
-        deltaLabel="vs last month"
+        id="kpi-issues"
+        title="ISSUES"
+        value={formatNumber(kpis.issuesOpened)}
         icon={CheckCircle2}
       >
-        <div className="flex flex-col gap-1 text-[9px] text-[var(--color-text-muted)] text-right">
-          <div className="flex items-center justify-end gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[var(--color-brand)]"/> Open: 12</div>
-          <div className="flex items-center justify-end gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#71717a]"/> Closed: 88</div>
+        <div className="flex flex-col gap-1 text-[10px] text-[var(--color-text-muted)] text-right mt-1 font-medium">
+          <div className="flex items-center justify-end gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#71717a]"/> Closed: {formatNumber(kpis.issuesClosed)}</div>
         </div>
       </MetricCard>
     </div>
@@ -181,6 +177,46 @@ async function TeamDistSection({ window }: { window: TimeWindow }) {
   })).slice(0, 3); // top 3
 
   return <TeamDistributionWidget data={formattedData} />;
+}
+
+async function RecentPRSection({ window }: { window: TimeWindow }) {
+  const prs = await getRecentPullRequests(window, 5);
+
+  return (
+    <div className="panel flex flex-col overflow-hidden h-full">
+      <div className="p-4 border-b border-[var(--color-border)] flex items-center justify-between shrink-0">
+        <h3 className="text-sm font-medium text-[var(--color-text-primary)]">Recent PRs</h3>
+      </div>
+      <div className="p-2 space-y-1 overflow-y-auto flex-1">
+        {prs.length === 0 ? (
+          <div className="p-4 text-center text-xs text-[var(--color-text-muted)]">No PRs in this window.</div>
+        ) : (
+          prs.map(pr => (
+            <a key={pr.id} href={pr.githubUrl} target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 p-2 rounded-md hover:bg-[var(--color-panel-raised)] transition-colors">
+              <div className="w-7 h-7 rounded-full bg-[var(--color-overlay)] overflow-hidden shrink-0">
+                {pr.authorAvatar ? (
+                  <img src={pr.authorAvatar} alt={pr.authorLogin} className="w-full h-full object-cover" />
+                ) : (
+                  <Users className="w-4 h-4 m-1.5 text-[var(--color-text-muted)]" />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-[var(--color-text-primary)] truncate">{pr.title}</p>
+                <p className="text-[10px] text-[var(--color-text-muted)] mt-0.5">{pr.authorLogin} • {formatRelativeDate(new Date(pr.createdAt))}</p>
+              </div>
+              <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium ${
+                pr.state === "MERGED" ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" :
+                pr.state === "CLOSED" ? "bg-red-500/10 text-red-500 border border-red-500/20" :
+                "bg-[var(--color-overlay)] text-[var(--color-text-secondary)] border border-[var(--color-border)]"
+              }`}>
+                {pr.state}
+              </span>
+            </a>
+          ))
+        )}
+      </div>
+    </div>
+  );
 }
 
 async function RepoTablePreview({ window }: { window: TimeWindow }) {
@@ -233,7 +269,7 @@ async function RepoTablePreview({ window }: { window: TimeWindow }) {
               {repo.commits30d}
             </td>
             <td className="text-xs text-[var(--color-text-secondary)]">
-              {repo.lastCommitAt ? formatRelativeDate(repo.lastCommitAt) : "never"}
+              {repo.lastActivityAt ? formatRelativeDate(new Date(repo.lastActivityAt)) : "never"}
             </td>
             <td>
               <StatusBadge status={repo.status === "Active" ? "Healthy" : repo.status === "Slowing" ? "Degraded" : repo.status} />
