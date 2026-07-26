@@ -46,7 +46,7 @@ export function Topbar({
   };
 
   return (
-    <header className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)] bg-[var(--color-canvas)] shrink-0 sticky top-0 z-20">
+    <header className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)] bg-[var(--color-surface)] backdrop-blur-xl shrink-0 sticky top-0 z-20">
       <div className="flex items-center gap-1.5 text-sm">
         <span className="text-[var(--color-text-muted)]">OGA Corp</span>
         <span className="text-[var(--color-text-muted)]">›</span>

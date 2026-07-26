@@ -1,6 +1,7 @@
 "use client";
 // src/components/shared/SearchInput.tsx
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { Search, ExternalLink, User, Folder, CircleDot } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -18,19 +19,45 @@ export function SearchInput({ placeholder = "Search repos, users, issues...", cl
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
-  
+  const [dropdownStyle, setDropdownStyle] = useState({});
+  const [mounted, setMounted] = useState(false);
+
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => { setMounted(true); }, []);
 
   // Close dropdown on click outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
+      // If clicking inside the container, do nothing
+      if (containerRef.current && containerRef.current.contains(e.target as Node)) {
+        return;
       }
+      
+      // If clicking inside the portal dropdown, do nothing
+      const target = e.target as HTMLElement;
+      if (target.closest('.search-dropdown-portal')) {
+        return;
+      }
+
+      setIsOpen(false);
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Update dropdown position
+  useEffect(() => {
+    if (isOpen && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setDropdownStyle({
+        position: 'fixed',
+        top: rect.bottom + 6,
+        left: rect.left,
+        width: Math.max(rect.width, 350),
+      });
+    }
+  }, [isOpen, results]);
 
   // Debounced search
   useEffect(() => {
@@ -71,7 +98,7 @@ export function SearchInput({ placeholder = "Search repos, users, issues...", cl
   const handleSelect = (item: any) => {
     setIsOpen(false);
     setQuery("");
-    
+
     if (item.type === 'repo') {
       router.push(`/repositories?search=${encodeURIComponent(item.data.name)}`);
     } else if (item.type === 'user') {
@@ -111,13 +138,16 @@ export function SearchInput({ placeholder = "Search repos, users, issues...", cl
         onKeyDown={handleKeyDown}
         className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-md pl-9 pr-3 py-1.5 focus:outline-none focus:border-[var(--color-text-muted)] transition-colors placeholder:text-[var(--color-text-muted)]"
       />
-      
+
       {isLoading && (
         <div className="absolute right-3 w-3 h-3 rounded-full border-2 border-[var(--color-text-muted)] border-t-transparent animate-spin" />
       )}
 
-      {isOpen && flatResults.length > 0 && (
-        <div className="absolute top-full mt-1.5 left-0 w-full lg:w-[350px] bg-[var(--color-panel)] border border-[var(--color-border)] rounded-md shadow-xl overflow-hidden z-50">
+      {mounted && isOpen && flatResults.length > 0 && typeof document !== 'undefined' && createPortal(
+        <div 
+          className="search-dropdown-portal ios-glass rounded-md shadow-2xl overflow-hidden z-[9999]"
+          style={dropdownStyle}
+        >
           <div className="max-h-[400px] overflow-y-auto py-2">
             
             {results?.repos.length! > 0 && (
@@ -131,7 +161,7 @@ export function SearchInput({ placeholder = "Search repos, users, issues...", cl
                       onClick={() => handleSelect({ type: 'repo', data: repo })}
                       className={cn(
                         "px-3 py-2 flex items-center gap-2 cursor-pointer text-sm text-[var(--color-text-primary)]",
-                        selectedIndex === idx ? "bg-[var(--color-overlay)]" : "hover:bg-[var(--color-panel-raised)]"
+                        selectedIndex === idx ? "bg-[var(--color-overlay)]" : "hover:bg-white/10"
                       )}
                     >
                       <Folder className="w-4 h-4 text-[var(--color-text-muted)]" />
@@ -153,7 +183,7 @@ export function SearchInput({ placeholder = "Search repos, users, issues...", cl
                       onClick={() => handleSelect({ type: 'user', data: user })}
                       className={cn(
                         "px-3 py-2 flex items-center gap-2 cursor-pointer text-sm text-[var(--color-text-primary)]",
-                        selectedIndex === idx ? "bg-[var(--color-overlay)]" : "hover:bg-[var(--color-panel-raised)]"
+                        selectedIndex === idx ? "bg-[var(--color-overlay)]" : "hover:bg-white/10"
                       )}
                     >
                       {user.avatarUrl ? (
@@ -180,7 +210,7 @@ export function SearchInput({ placeholder = "Search repos, users, issues...", cl
                       onClick={() => handleSelect({ type: 'issue', data: issue })}
                       className={cn(
                         "px-3 py-2 flex flex-col cursor-pointer text-sm",
-                        selectedIndex === idx ? "bg-[var(--color-overlay)]" : "hover:bg-[var(--color-panel-raised)]"
+                        selectedIndex === idx ? "bg-[var(--color-overlay)]" : "hover:bg-white/10"
                       )}
                     >
                       <div className="flex items-center gap-2 text-[var(--color-text-primary)]">
@@ -199,7 +229,8 @@ export function SearchInput({ placeholder = "Search repos, users, issues...", cl
             )}
             
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

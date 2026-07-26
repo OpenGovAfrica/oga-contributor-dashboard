@@ -9,6 +9,16 @@ import type {
   IssueAnalytics,
 } from "./types";
 
+export interface RecentPR {
+  id: string;
+  title: string;
+  githubUrl: string;
+  state: "OPEN" | "MERGED" | "CLOSED";
+  authorLogin: string;
+  authorAvatar: string | null;
+  createdAt: string;
+}
+
 // hardcoded org for v1 - will move to jwt session claims in v2
 
 async function getOrgId(): Promise<string> {
@@ -35,64 +45,83 @@ export async function getOrgKPIs(
   prevStart.setDate(prevStart.getDate() - (new Date().getDate() - since.getDate()));
 
   const [
-    totalContributors,
-    prevContributors,
-    activeRepos,
-    prevActiveRepos,
+    activeContributors,
     totalCommits,
     prevCommits,
-    openIssues,
+    prsOpened,
+    prsMerged,
+    issuesOpened,
+    issuesClosed,
   ] = await Promise.all([
-    prisma.contributor.count({ where: { organizationId: orgId } }),
     prisma.contributor.count({
-      where: { organizationId: orgId, firstSeenAt: { lt: since } },
-    }),
-    prisma.repository.count({
       where: {
         organizationId: orgId,
-        contributions: { some: { committedAt: { gte: since } } },
-      },
-    }),
-    prisma.repository.count({
-      where: {
-        organizationId: orgId,
-        contributions: { some: { committedAt: { gte: prevStart, lt: since } } },
-      },
+        OR: [
+          { contributions: { some: { committedAt: { gte: since } } } },
+          { issuesOpened: { some: { openedAt: { gte: since } } } },
+          { issuesClosed: { some: { closedAt: { gte: since } } } }
+        ]
+      }
     }),
     prisma.contribution.count({
-      where: {
-        repository: { organizationId: orgId },
-        type: "COMMIT",
-        committedAt: { gte: since },
-      },
+      where: { repository: { organizationId: orgId }, type: "COMMIT", committedAt: { gte: since } }
     }),
     prisma.contribution.count({
-      where: {
-        repository: { organizationId: orgId },
-        type: "COMMIT",
-        committedAt: { gte: prevStart, lt: since },
-      },
+      where: { repository: { organizationId: orgId }, type: "COMMIT", committedAt: { gte: prevStart, lt: since } }
+    }),
+    prisma.contribution.count({
+      where: { repository: { organizationId: orgId }, type: "PULL_REQUEST", committedAt: { gte: since } }
+    }),
+    prisma.contribution.count({
+      where: { repository: { organizationId: orgId }, type: "PULL_REQUEST", mergedAt: { gte: since } }
     }),
     prisma.issue.count({
-      where: {
-        repository: { organizationId: orgId },
-        state: "OPEN",
-      },
+      where: { repository: { organizationId: orgId }, openedAt: { gte: since } }
+    }),
+    prisma.issue.count({
+      where: { repository: { organizationId: orgId }, closedAt: { gte: since } }
     }),
   ]);
 
   return {
-    totalContributors,
-    activeRepositories: activeRepos,
+    activeContributors,
     totalCommits,
-    openIssues,
-    contributorsDelta: totalContributors - prevContributors,
-    activeReposDelta: activeRepos - prevActiveRepos,
+    prsOpened,
+    prsMerged,
+    issuesOpened,
+    issuesClosed,
     commitsDelta: prevCommits > 0
       ? Math.round(((totalCommits - prevCommits) / prevCommits) * 100)
       : 0,
-    openIssuesDelta: 0, // requires a snapshot — Phase 3 feature
   };
+}
+
+export async function getRecentPullRequests(window: TimeWindow, limit: number = 5): Promise<RecentPR[]> {
+  const orgId = await getOrgId();
+  const since = windowToStartDate(window);
+
+  const prs = await prisma.contribution.findMany({
+    where: {
+      repository: { organizationId: orgId },
+      type: "PULL_REQUEST",
+      committedAt: { gte: since }
+    },
+    include: {
+      contributor: { select: { githubLogin: true, avatarUrl: true } }
+    },
+    orderBy: { committedAt: "desc" },
+    take: limit,
+  });
+
+  return prs.map(pr => ({
+    id: pr.id,
+    title: pr.title || "Untitled PR",
+    githubUrl: pr.githubUrl || "#",
+    state: pr.mergedAt ? "MERGED" : "OPEN",
+    authorLogin: pr.contributor.githubLogin,
+    authorAvatar: pr.contributor.avatarUrl,
+    createdAt: pr.committedAt.toISOString(),
+  }));
 }
 
 export async function getVelocityTrend(
