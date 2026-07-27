@@ -14,6 +14,7 @@ import {
   Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SyncStatusCard } from "@/components/cards/SyncStatusCard";
 
 const NAV = [
   {
@@ -58,7 +59,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="flex flex-col w-[280px] min-h-screen bg-[var(--color-surface)] border-r border-[var(--color-border)] shrink-0">
+    <aside className="flex flex-col w-[280px] min-h-screen bg-[var(--color-surface)] backdrop-blur-2xl border-r border-[var(--color-border)] shrink-0 z-30">
       {/* Logo */}
       <div className="flex items-center gap-3.5 px-8 py-8">
         <div className="w-8 h-8 shrink-0 relative rounded-md overflow-hidden bg-[var(--color-panel-raised)] p-1 border border-[var(--color-border)]">
@@ -83,24 +84,80 @@ export function Sidebar() {
               href={item.href}
               id={item.id}
               className={cn(
-                "flex items-center gap-3.5 px-4 py-2.5 rounded-lg text-[14px] transition-all duration-150 relative overflow-hidden",
+                "flex items-center gap-3.5 px-4 py-2.5 rounded-lg text-[14px] transition-all duration-150 relative overflow-hidden border",
                 isActive
-                  ? "bg-[var(--color-panel-raised)] text-[var(--color-text-primary)] font-medium border border-[var(--color-border)]"
-                  : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-panel)] border border-transparent",
+                  ? "bg-[var(--color-panel-raised)] text-[var(--color-text-primary)] font-medium border-[var(--color-border)]"
+                  : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-panel)] border-transparent",
               )}
             >
               {isActive && (
                 <div className="absolute left-0 top-0 bottom-0 w-1 bg-[var(--color-brand-light)] rounded-r-sm" />
               )}
-              <item.icon className={cn("w-[18px] h-[18px] shrink-0", isActive ? "text-[var(--color-brand-light)]" : "opacity-70")} />
+              <item.icon className={cn(
+                "w-[18px] h-[18px] shrink-0",
+                isActive ? "text-[var(--color-brand-light)]" : "opacity-70"
+              )} />
               {item.label}
             </Link>
           );
         })}
       </nav>
 
+      {/* OGA Intelligence — Featured Entry */}
+      <div className="px-5 pb-4 mt-2">
+        <Link
+          href="/intelligence"
+          id="nav-intelligence"
+          className={cn(
+            "animate-ai-expand group relative flex items-center gap-3 p-3.5 rounded-xl transition-all duration-300 border",
+            pathname === "/intelligence" || pathname.startsWith("/intelligence/")
+              ? "border-blue-500/30 bg-blue-500/10 shadow-lg shadow-blue-500/10"
+              : "border-[var(--color-border)] bg-[var(--color-panel)] hover:border-blue-500/30 hover:bg-[var(--color-panel-raised)] hover:shadow-md hover:shadow-blue-500/5 hover:-translate-y-px"
+          )}
+        >
+          {/* Ambient glow blob */}
+          <div className="absolute -bottom-4 -right-4 w-20 h-20 bg-blue-500/10 rounded-full blur-2xl pointer-events-none group-hover:bg-blue-500/20 transition-all duration-500" />
+
+          {/* Robot icon (Alive animation) */}
+          <div className="animate-ai-alive relative shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-[var(--color-border)] shadow-sm flex items-center justify-center overflow-hidden">
+            <div className="relative w-[70%] h-[70%]">
+              <Image
+                src="/oga-intelligence.png"
+                alt="OGA Intelligence"
+                fill
+                sizes="40px"
+                className="object-contain"
+              />
+            </div>
+          </div>
+
+          {/* Labels */}
+          <div className="animate-ai-fade-in relative flex-1 min-w-0">
+            <p className="text-[13.5px] font-bold text-[var(--color-text-primary)] leading-tight tracking-tight">OGA Intelligence</p>
+            <p className="text-[11px] text-blue-500 font-semibold mt-0.5 tracking-wide">AI Analyst</p>
+          </div>
+
+          {/* Arrow */}
+          <div className={cn(
+            "animate-ai-fade-in relative shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300",
+            pathname === "/intelligence" || pathname.startsWith("/intelligence/")
+              ? "bg-blue-500 text-white shadow-md shadow-blue-500/30 opacity-100 translate-x-0"
+              : "bg-blue-500/10 text-blue-500 border border-blue-500/20 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0"
+          )}>
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </Link>
+      </div>
+
+      {/* Sync Status */}
+      <div className="px-5 pb-4">
+        <SyncStatusCard />
+      </div>
+
       {/* Footer Profile */}
-      <div className="px-7 py-5 border-t border-[var(--color-border)] bg-[var(--color-canvas)]">
+      <div className="px-7 py-5 border-t border-[var(--color-border)] bg-transparent">
         <div className="flex items-center gap-3 mb-3">
           <a
             href="https://github.com/OpenGovAfrica"
@@ -124,7 +181,7 @@ export function Sidebar() {
           </a>
         </div>
         <p className="text-[11.5px] text-[var(--color-text-muted)] font-medium">
-          Made with ❤️ by <span className="text-[var(--color-text-primary)] font-semibold">Rohit</span>
+          Made with ❤️ by <a href="https://github.com/caffeine-rohit" target="_blank" rel="noopener noreferrer" className="text-[var(--color-text-primary)] font-semibold hover:underline decoration-blue-500/50 underline-offset-4 transition-all hover:text-blue-500">Rohit</a>
         </p>
       </div>
     </aside>

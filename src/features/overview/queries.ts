@@ -260,3 +260,19 @@ export async function getIssueAnalytics(
     trend,
   };
 }
+
+export async function getHighestStreakContributors() {
+  const topContributors = await prisma.contributor.findMany({
+    orderBy: { currentStreak: 'desc' },
+    where: { currentStreak: { gt: 0 } },
+    take: 10,
+    select: { id: true, githubLogin: true, avatarUrl: true, currentStreak: true, name: true }
+  });
+
+  if (topContributors.length === 0) return null;
+  
+  const maxStreak = topContributors[0].currentStreak;
+  const tiedContributors = topContributors.filter(c => c.currentStreak === maxStreak);
+  
+  return { maxStreak, tiedContributors };
+}

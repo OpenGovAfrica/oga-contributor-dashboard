@@ -30,16 +30,15 @@ const CustomTooltip = ({ active, payload, label, coordinate, viewBox, containerR
 
   return createPortal(
     <div 
-      className="fixed px-3 py-2.5 text-xs shadow-2xl text-[var(--color-text-primary)] pointer-events-none z-[9999] transition-all duration-[150ms] ease-out"
+      className="fixed px-3 py-2.5 text-xs text-[var(--color-text-primary)] pointer-events-none z-[9999] transition-all duration-[150ms] ease-out shadow-2xl rounded-xl"
       style={{
         left: left,
         top: top,
         transform: 'translate(-50%, -100%)',
-        backgroundColor: "rgba(10, 10, 14, 0.32)",
-        backdropFilter: "blur(60px) saturate(220%)",
-        WebkitBackdropFilter: "blur(60px) saturate(220%)",
-        border: "1px solid rgba(255,255,255,0.12)",
-        borderRadius: "var(--radius-md)",
+        backgroundColor: 'var(--color-surface)',
+        backdropFilter: 'blur(24px) saturate(150%)',
+        WebkitBackdropFilter: 'blur(24px) saturate(150%)',
+        border: '1px solid var(--color-border)',
       }}
     >
       <p className="text-[var(--color-text-muted)] mb-2 font-medium">{label}</p>

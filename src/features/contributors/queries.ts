@@ -65,7 +65,6 @@ export async function getContributorLeaderboard(opts: {
     },
   });
 
-  // Enrich and filter to only contributors with at least 1 contribution in window
   const entries: ContributorLeaderboardEntry[] = contributors
     .filter((c) => c.contributions.length > 0)
     .map((c) => {
@@ -80,7 +79,6 @@ export async function getContributorLeaderboard(opts: {
 
       const longevityDays = daysBetween(c.firstSeenAt, new Date());
 
-      // 12-week sparkline
       const sparkline = buildSparkline(c.contributions, 12);
 
       return {
@@ -109,7 +107,6 @@ export async function getContributorLeaderboard(opts: {
       };
     });
 
-  // Sort
   const sorted = sortEntries(entries, sortBy);
   const total = sorted.length;
   const totalPages = Math.ceil(total / limit);
@@ -150,7 +147,6 @@ function sortEntries(
       case "volume":
         return b.totalCount - a.totalCount;
       case "frequency": {
-        // Average contributions per week in the window
         const freqA = a.totalCount / Math.max(1, a.longevityDays / 7);
         const freqB = b.totalCount / Math.max(1, b.longevityDays / 7);
         return freqB - freqA;
