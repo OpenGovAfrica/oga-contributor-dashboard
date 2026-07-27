@@ -1,14 +1,14 @@
 // src/app/(dashboard)/overview/page.tsx
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { Users, FolderGit2, GitPullRequest, CheckCircle2, ExternalLink, FileText } from "lucide-react";
+import { Users, FolderGit2, GitPullRequest, CheckCircle2, ExternalLink, FileText, Flame } from "lucide-react";
 import { Topbar } from "@/components/layout/Topbar";
 import { MetricCard } from "@/components/cards/MetricCard";
 import { ActivityTabsSection } from "@/components/charts/ActivityTabsSection";
 import { TeamDistributionWidget } from "@/components/cards/TeamDistributionWidget";
 import { MetricCardSkeleton, ChartSkeleton } from "@/components/shared/LoadingSkeleton";
 import { MiniSparkline } from "@/components/charts/MiniSparkline";
-import { getOrgKPIs, getVelocityTrend, getTeamDistribution, getIssueAnalytics, getRecentPullRequests } from "@/features/overview/queries";
+import { getOrgKPIs, getVelocityTrend, getTeamDistribution, getIssueAnalytics, getRecentPullRequests, getHighestStreakContributors } from "@/features/overview/queries";
 import { getRepoHealthMatrix } from "@/features/repositories/queries";
 import { formatNumber, formatRelativeDate } from "@/lib/utils";
 import type { TimeWindow } from "@/lib/zod-schemas";
@@ -91,9 +91,12 @@ export default async function OverviewPage({ searchParams }: PageProps) {
               </Suspense>
             </div>
           </div>
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 flex flex-col gap-6">
             <Suspense fallback={<div className="h-[200px] skeleton rounded-lg" />}>
               <TeamDistSection window={window} />
+            </Suspense>
+            <Suspense fallback={<div className="h-[100px] skeleton rounded-lg" />}>
+              <HighestStreakSection />
             </Suspense>
           </div>
         </div>
@@ -280,3 +283,74 @@ async function RepoTablePreview({ window }: { window: TimeWindow }) {
     </table>
   );
 }
+
+async function HighestStreakSection() {
+  const data = await getHighestStreakContributors();
+  
+  if (!data) {
+    return (
+      <div className="panel p-4 flex items-center justify-center h-[100px] border border-[var(--color-border)] rounded-xl">
+        <p className="text-xs text-[var(--color-text-muted)]">No active streaks</p>
+      </div>
+    );
+  }
+
+  const { maxStreak, tiedContributors } = data;
+  const isTie = tiedContributors.length > 1;
+
+  return (
+    <div className="panel p-5 rounded-xl flex items-center justify-between border border-[var(--color-border)] overflow-hidden relative group">
+      {/* Background glow */}
+      <div className="absolute -right-8 -bottom-12 w-32 h-32 bg-orange-500/10 rounded-full blur-2xl group-hover:bg-orange-500/20 transition-all duration-500 pointer-events-none" />
+      
+      <div className="flex-1 min-w-0 z-10">
+        <div className="flex items-center gap-1.5 mb-2">
+          <Flame className="w-[15px] h-[15px] text-orange-500 fill-orange-500/20 animate-pulse" />
+          <h3 className="text-[11px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">Top Streak</h3>
+        </div>
+        
+        {isTie ? (
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-2xl font-black text-[var(--color-text-primary)] leading-none">{maxStreak}</span>
+              <span className="text-[10px] font-bold text-orange-600 bg-orange-500/10 px-1.5 py-0.5 rounded border border-orange-500/20 uppercase tracking-widest">Days</span>
+            </div>
+            <p className="text-[12px] text-[var(--color-text-secondary)] truncate">
+              <span className="font-semibold text-[var(--color-text-primary)]">{tiedContributors.length} devs</span> tied for 1st
+            </p>
+          </div>
+        ) : (
+          <div className="flex flex-col">
+            <p className="text-[14px] font-bold text-[var(--color-text-primary)] truncate">
+              {tiedContributors[0].name || tiedContributors[0].githubLogin}
+            </p>
+            <div className="flex items-center gap-1.5 mt-1">
+              <span className="text-xl font-black text-orange-500 leading-none">{maxStreak}</span>
+              <span className="text-[10px] font-bold text-orange-600 uppercase tracking-widest">Days</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="flex -space-x-2.5 shrink-0 z-10 relative">
+        {tiedContributors.slice(0, 3).map((c, i) => (
+          <div key={c.id} className="w-10 h-10 rounded-full border-2 border-[var(--color-panel)] bg-[var(--color-surface)] overflow-hidden relative shadow-sm" style={{ zIndex: 10 - i }}>
+            {c.avatarUrl ? (
+              <img src={c.avatarUrl} alt={c.githubLogin} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-[var(--color-brand)] text-[var(--color-text-inverse)] text-[10px] font-bold">
+                {c.githubLogin.slice(0,2).toUpperCase()}
+              </div>
+            )}
+          </div>
+        ))}
+        {tiedContributors.length > 3 && (
+          <div className="w-10 h-10 rounded-full border-2 border-[var(--color-panel)] bg-[var(--color-panel-raised)] text-[var(--color-text-primary)] flex items-center justify-center text-[11px] font-bold shadow-sm relative z-0">
+            +{tiedContributors.length - 3}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
