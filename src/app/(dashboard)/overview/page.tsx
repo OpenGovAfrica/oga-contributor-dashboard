@@ -133,7 +133,9 @@ async function KPISection({ window }: { window: TimeWindow }) {
         deltaLabel={kpis.commitsDelta > 0 ? "vs previous period" : undefined}
         icon={FolderGit2}
       >
-        <MiniSparkline data={spark2} color="var(--color-brand)" type="bar" />
+        <div className="w-[60px] h-[36px]">
+          <MiniSparkline data={spark2} color="var(--color-brand)" type="bar" />
+        </div>
       </MetricCard>
 
       <MetricCard
@@ -183,7 +185,7 @@ async function TeamDistSection({ window }: { window: TimeWindow }) {
 }
 
 async function RecentPRSection({ window }: { window: TimeWindow }) {
-  const prs = await getRecentPullRequests(window, 5);
+  const prs = await getRecentPullRequests(window, 7);
 
   return (
     <div className="panel flex flex-col overflow-hidden h-full">
