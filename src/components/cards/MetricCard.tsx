@@ -69,7 +69,7 @@ export function MetricCard({
 
         {/* Right side chart area */}
         {children && (
-          <div className="absolute bottom-4 right-4 h-[36px] w-[60px] flex items-end justify-end">
+          <div className="absolute bottom-4 right-4 h-[36px] w-auto flex items-end justify-end whitespace-nowrap">
             {children}
           </div>
         )}
