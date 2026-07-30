@@ -28,8 +28,10 @@ async function getOrgId(): Promise<string> {
   const state = await prisma.systemState.findUnique({ where: { id: 1 } });
   const login = state?.targetOrg || "OpenGovAfrica";
   
-  const newOrg = await prisma.organization.create({
-    data: { githubLogin: login, name: login },
+  const newOrg = await prisma.organization.upsert({
+    where: { githubLogin: login },
+    update: {},
+    create: { githubLogin: login, name: login },
   });
   return newOrg.id;
 }
