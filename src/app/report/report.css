@@ -1,0 +1,82 @@
+/* src/app/report/report.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-bg-document: #ffffff;
+    --color-text-main: #000000;
+    --color-text-subtle: #4b5563;
+    --color-border-doc: #e5e7eb;
+    --color-brand-doc: #0f172a;
+    --color-accent-doc: #3b82f6;
+  }
+}
+
+.report-container {
+  width: 210mm; /* A4 width */
+  min-height: 297mm; /* A4 height */
+  background: white;
+  margin: 40px auto;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  padding: 20mm;
+  color: var(--color-text-main);
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.print-button {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: var(--color-brand-doc);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  cursor: pointer;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.print-button:hover {
+  background: #1e293b;
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+  
+  body {
+    background: white !important;
+  }
+  
+  .report-container {
+    width: 100% !important;
+    min-height: auto !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
+  .print-button {
+    display: none !important;
+  }
+
+  /* Force background colors to print */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  /* Prevent page breaks inside important sections */
+  .avoid-break {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+}
