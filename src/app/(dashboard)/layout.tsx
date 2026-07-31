@@ -9,8 +9,8 @@ export default function DashboardLayout({
 }) {
   return (
     <>
-      {/* Mobile Lock Screen - Visible only on mobile (< 768px) */}
-      <div className="md:hidden flex flex-col items-center justify-center min-h-screen bg-[var(--color-canvas)] p-8 text-center relative overflow-hidden">
+      {/* Mobile Lock Screen - Visible only on mobile and small tablets (< 1024px) */}
+      <div className="lg:hidden flex flex-col items-center justify-center min-h-screen bg-[var(--color-canvas)] p-8 text-center relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-50" />
         <div className="relative z-10 flex flex-col items-center max-w-sm">
           <div className="w-16 h-16 rounded-2xl bg-[var(--color-panel-raised)] border border-[var(--color-border)] shadow-xl flex items-center justify-center mb-8">
@@ -20,14 +20,14 @@ export default function DashboardLayout({
             Designed for Workspace
           </h1>
           <p className="text-[15px] text-[var(--color-text-muted)] leading-relaxed mb-8">
-            The OpenGovAfrica Intelligence Dashboard harnesses massive high-fidelity data grids and multi-dimensional analytics that command a larger canvas. Please open this experience on a desktop or tablet.
+            The OpenGovAfrica Intelligence Dashboard harnesses massive high-fidelity data grids and multi-dimensional analytics that command a larger canvas. Please open this experience on a desktop or rotate your tablet to landscape mode.
           </p>
           <div className="h-1 w-12 bg-[var(--color-border)] rounded-full" />
         </div>
       </div>
 
-      {/* Actual Dashboard - Hidden on mobile, visible on md (768px/iPads) and up */}
-      <div className="hidden md:flex min-h-screen">
+      {/* Actual Dashboard - Hidden on mobile/portrait-tablets, visible on lg (1024px/Landscape iPads) and up */}
+      <div className="hidden lg:flex min-h-screen">
         <Sidebar />
         <main className="flex-1 flex flex-col min-w-0 overflow-auto">
           {children}
