@@ -31,6 +31,7 @@ export function windowToStartDate(window: TimeWindow): Date {
   const days = windowToDays(window);
   const d = new Date();
   d.setDate(d.getDate() - days);
+  d.setHours(0, 0, 0, 0);
   return d;
 }
 
