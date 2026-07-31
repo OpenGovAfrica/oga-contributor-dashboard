@@ -413,3 +413,9 @@ body {
 .animate-ai-alive {
   animation: ai-float 6s ease-in-out infinite, ai-look 15s ease-in-out infinite 2s;
 }
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
