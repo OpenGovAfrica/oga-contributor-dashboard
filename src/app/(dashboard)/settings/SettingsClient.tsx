@@ -252,6 +252,7 @@ export function SettingsClient({ initialLookback, initialFrequency, hasGithubPat
                   <div>
                     <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1.5">Auto-Sync Frequency</label>
                     <select 
+                      key={initialFrequency}
                       name="autoSyncFrequency"
                       defaultValue={initialFrequency}
                       className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-md px-3 py-2.5 focus:outline-none focus:border-[var(--color-brand)] transition-colors"
@@ -265,6 +266,7 @@ export function SettingsClient({ initialLookback, initialFrequency, hasGithubPat
                   <div>
                     <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1.5">Data Lookback Window</label>
                     <select 
+                      key={initialLookback}
                       name="syncLookbackDays"
                       defaultValue={initialLookback}
                       className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-md px-3 py-2.5 focus:outline-none focus:border-[var(--color-brand)] transition-colors"
