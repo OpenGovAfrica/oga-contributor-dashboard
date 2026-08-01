@@ -220,8 +220,8 @@ async function RecentPRSection({ window }: { window: TimeWindow }) {
               </span>
 
               {/* Glassmorphic Hover Popup */}
-              <div className="absolute inset-x-1 top-1/2 -translate-y-1/2 z-50 opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-300 scale-95 group-hover:scale-100 rounded-lg p-3 bg-white/70 dark:bg-black/60 backdrop-blur-xl border border-[var(--color-border)] shadow-2xl shadow-black/20">
-                <p className="text-xs font-semibold text-[var(--color-text-primary)] text-center leading-relaxed">
+              <div className="absolute inset-x-2 top-1/2 -translate-y-1/2 z-50 opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-300 scale-95 group-hover:scale-100 rounded-xl p-3 bg-white/85 dark:bg-[#1c1c1e]/85 backdrop-blur-2xl border border-black/5 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)]">
+                <p className="text-xs font-medium text-black/90 dark:text-white/90 text-center leading-relaxed tracking-tight">
                   {pr.title}
                 </p>
               </div>
