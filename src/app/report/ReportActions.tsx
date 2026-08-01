@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Printer, Sparkles, ChevronDown, CheckCircle2, MessageSquareText } from "lucide-react";
+import { Printer, Sparkles, ChevronDown, CheckCircle2, MessageSquareText, ExternalLink, Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ReportDataPayload {
@@ -71,12 +71,12 @@ Based on this data, what are your immediate takeaways regarding our engineering 
   };
 
   return (
-    <div className="fixed bottom-8 right-8 z-50 flex items-center gap-3 print:hidden">
+    <div className="fixed top-8 right-8 z-50 flex items-center gap-3 print:hidden">
       
       {/* Success Toast */}
       <div className={cn(
-        "absolute right-0 bottom-[120%] bg-[var(--color-panel-raised)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm px-4 py-3 rounded-xl shadow-2xl transition-all duration-300 flex items-center gap-2 whitespace-nowrap",
-        showCopied ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
+        "absolute right-0 top-[120%] bg-[var(--color-panel-raised)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm px-4 py-3 rounded-xl shadow-2xl transition-all duration-300 flex items-center gap-2 whitespace-nowrap",
+        showCopied ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4 pointer-events-none"
       )}>
         <CheckCircle2 className="w-4 h-4 text-green-500" />
         Data copied! Please paste into Claude.
@@ -94,22 +94,25 @@ Based on this data, what are your immediate takeaways regarding our engineering 
         </button>
 
         {isOpen && (
-          <div className="absolute bottom-[120%] right-0 mb-2 w-56 bg-[var(--color-panel)] backdrop-blur-xl border border-[var(--color-border)] rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
+          <div className="absolute top-[120%] right-0 mt-2 w-56 bg-[var(--color-panel)] backdrop-blur-xl border border-[var(--color-border)] rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
             <div className="px-4 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
               <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-muted)]">Analyze with LLM</span>
             </div>
             <div className="p-1 flex flex-col gap-1">
               <button onClick={() => handleShareToLLM('chatgpt')} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[var(--color-panel-raised)] text-[14px] text-left text-[var(--color-text-primary)] transition-colors">
-                <MessageSquareText className="w-4 h-4 opacity-70" />
-                ChatGPT (Auto-fill)
+                <img src="/openai.svg" alt="ChatGPT" className="w-4 h-4" />
+                ChatGPT
+                <ExternalLink className="w-3.5 h-3.5 text-[var(--color-text-muted)] ml-auto" />
               </button>
               <button onClick={() => handleShareToLLM('perplexity')} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[var(--color-panel-raised)] text-[14px] text-left text-[var(--color-text-primary)] transition-colors">
-                <MessageSquareText className="w-4 h-4 opacity-70" />
-                Perplexity (Auto-fill)
+                <img src="/perplexity-color.svg" alt="Perplexity" className="w-4 h-4" />
+                Perplexity
+                <ExternalLink className="w-3.5 h-3.5 text-[var(--color-text-muted)] ml-auto" />
               </button>
               <button onClick={() => handleShareToLLM('claude')} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[var(--color-panel-raised)] text-[14px] text-left text-[var(--color-text-primary)] transition-colors">
-                <MessageSquareText className="w-4 h-4 opacity-70" />
-                Claude (Copy + Paste)
+                <img src="/claude-color.svg" alt="Claude" className="w-4 h-4" />
+                Claude
+                <Copy className="w-3.5 h-3.5 text-[var(--color-text-muted)] ml-auto" />
               </button>
             </div>
           </div>
