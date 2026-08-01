@@ -9,7 +9,7 @@ import { getRepoHealthMatrix } from "@/features/repositories/queries";
 import prisma from "@/lib/prisma";
 import { windowToStartDate } from "@/lib/zod-schemas";
 import { formatNumber } from "@/lib/utils";
-import { PrintAction } from "./PrintAction";
+import { ReportActions } from "./ReportActions";
 
 interface PageProps {
   searchParams: Promise<Record<string, string>>;
@@ -251,8 +251,18 @@ export default async function ReportPage({ searchParams }: PageProps) {
         Confidential & Proprietary • OpenGovAfrica Operations Dashboard
       </div>
 
-      {/* Client component for print button */}
-      <PrintAction />
+      {/* Floating Action Buttons */}
+      <ReportActions data={{
+        timeWindow: window.replace('d', ' Days'),
+        activeContributors: kpis.activeContributors,
+        totalCommits: kpis.totalCommits,
+        prsOpened: kpis.prsOpened,
+        prsMerged: kpis.prsMerged,
+        issuesOpened: kpis.issuesOpened,
+        issuesClosed: kpis.issuesClosed,
+        activeRepos: activeRepos,
+        topContributors: ranked
+      }} />
     </div>
   );
 }
