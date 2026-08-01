@@ -3,6 +3,8 @@ import { Topbar } from "@/components/layout/Topbar";
 import { SettingsClient } from "./SettingsClient";
 import prisma from "@/lib/prisma";
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: "Settings",
 };
