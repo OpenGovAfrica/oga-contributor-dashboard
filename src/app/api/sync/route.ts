@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { runGitHubSync } from "@/lib/github-sync";
 import prisma from "@/lib/prisma";
 
+export const maxDuration = 60; // Extend Vercel Hobby timeout to maximum 60 seconds
+
 export async function POST(req: Request) {
   try {
     // TODO(v2): Implement strict CRON_SECRET authorization headers to prevent unauthenticated trigger spam.
