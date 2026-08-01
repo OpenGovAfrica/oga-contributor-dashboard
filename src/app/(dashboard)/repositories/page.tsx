@@ -187,8 +187,8 @@ function RepoRow({ repo }: { repo: RepoHealthRow }) {
       <td><StatusBadge status={repo.status} /></td>
       <td>
         <span className="text-xs">
-          {repo.lastCommitAt
-            ? formatRelativeDate(repo.lastCommitAt)
+          {repo.lastActivityAt
+            ? formatRelativeDate(repo.lastActivityAt)
             : <span className="text-[var(--color-text-muted)]">never</span>}
         </span>
       </td>
