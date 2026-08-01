@@ -81,6 +81,9 @@ export function PlatformActivityChart({ data, viewType = "bar" }: PlatformActivi
     date: formatDate(d.date),
   }));
 
+  // Calculate dynamic bar size based on data density
+  const dynamicBarSize = data.length > 30 ? 6 : 16;
+
   return (
     <div ref={containerRef} className="flex flex-col h-full w-full">
       <div className="flex-1 -ml-4 mt-2">
@@ -96,7 +99,7 @@ export function PlatformActivityChart({ data, viewType = "bar" }: PlatformActivi
               <Line type="monotone" dataKey="reviews" stroke="#3b82f6" strokeWidth={2} dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
             </LineChart>
           ) : (
-            <BarChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }} barSize={16}>
+            <BarChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }} barSize={dynamicBarSize}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} opacity={0.4} />
               <XAxis dataKey="date" tick={{ fill: "var(--color-text-muted)", fontSize: 10 }} tickLine={false} axisLine={{ stroke: "var(--color-border)" }} interval="preserveStartEnd" tickMargin={12} />
               <Tooltip content={(props: any) => mounted ? <CustomTooltip {...props} containerRef={containerRef} /> : null} cursor={{ fill: "var(--color-panel-raised)" }} />
