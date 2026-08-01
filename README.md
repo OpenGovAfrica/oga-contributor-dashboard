@@ -1,91 +1,69 @@
-# OGA Contributor & Impact Dashboard
+# 🌍 OpenGovAfrica Intelligence Dashboard
 
-Live view of contributor activity, repository health, and cross-team collaboration across OpenGov Africa's 29+ open source repositories — built to answer a question the team kept running into: who's doing what, and is it working.
+> An enterprise-grade, multi-dimensional analytics dashboard built for the OpenGovAfrica leadership team to track open-source repository health, contributor synergy, and engineering velocity across all internal teams.
 
-[Live demo](#) · [Tracking issue](https://github.com/OpenGovAfrica/oga-contributor-dashboard/issues/1) · [Report an issue](https://github.com/OpenGovAfrica/oga-contributor-dashboard/issues)
+[![Next.js](https://img.shields.io/badge/Next.js-15.0-black?style=flat&logo=next.js)](#)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat&logo=typescript)](#)
+[![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?style=flat&logo=prisma)](#)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-38B2AC?style=flat&logo=tailwind-css)](#)
 
-## Why this exists
+## ⚡ Live Deployment
+**[View the Live Dashboard on Vercel](#)** *(Requires authorized environment variables for live syncing)*
 
-OGA's work is spread across 29+ repositories and several working groups, with no single place to see contributor activity, repository health, or how issue-based work is progressing across teams. Early feedback from the team also surfaced a specific gap: git-based metrics like commits and PRs make non-engineering teams look inactive, even when they're doing real work through issues. This dashboard was built to fix both problems, while also providing leadership with professional, exportable reports.
+## ✨ Core Features
+- **God-Level UI/UX:** Stunning, Glassmorphism-inspired design system built entirely from scratch using Tailwind v4. Perfectly responsive with Desktop-Lock safeguards for massive data grids.
+- **The Synergy Matrix:** A proprietary 6x6 cross-team contribution matrix that tracks how often different OpenGovAfrica working groups collaborate on the same repositories.
+- **Repository Health Matrix:** Real-time metrics on PR velocity, issue resolution rates, and commit frequency.
+- **Executive PDF Export:** A standalone, A4-optimized reporting engine that converts live data into a pristine, print-ready PDF for stakeholder meetings.
+- **Share to AI Auto-fill:** Groundbreaking "1-Click AI Export" that serializes the complex PDF data into a token-efficient prompt and auto-fills it directly into ChatGPT, Perplexity, or Claude.
 
-## Features
+## 🏗️ Architecture
+This dashboard was engineered specifically to protect the OpenGovAfrica GitHub organization from API rate limits.
+Rather than hitting the GitHub API on every page load, a **Pull-Based Sync Engine** ingest data in the background into a PostgreSQL database. The Next.js React Server Components (RSCs) execute heavy SQL aggregations against this database in milliseconds.
 
-- **Overview & Executive Reporting** — org-wide KPIs (contributors, active repositories, PR merge velocity, issue resolution rate), with a toggle between code activity and issue analytics. Includes a dedicated A4-optimized Executive PDF Report generator (`/report`) for stakeholder updates.
-- **Repositories** — health matrix across all repos with automatic Healthy / Degraded / Stalled status, filterable by team and language.
-- **Contributors & Leaderboard** — cross-repository contributor profiles and a weighted leaderboard, so contributions aren't trapped in a single repo's view.
-- **Teams & Cross-Team Synergy** — working-group breakdowns with a filter that recalculates every page's metrics by team. Features a Cross-Team Synergy matrix to visualize collaboration between different working groups (e.g., Engineering & Marketing).
-- **Issue & Collaboration Analytics** — issue funnel and backlog trend, an aging report for stale issues, a work-category breakdown by label, and PR cycle time. This is the page that makes non-code contribution visible.
-- **Smart Background Sync** — non-blocking, reliable GitHub API data ingestion with rate-limit protection and visual time-estimates.
-- **Settings & UI Polish** — platform preferences, organization configuration, dark/light mode, smooth glassmorphism modals, and dynamic trend line toggles.
+Read the [ARCHITECTURE.md](ARCHITECTURE.md) and our [Architecture Decision Records (ADRs)](docs/adr/) for deep-dives into our URL-state management and background sync engine.
 
-## Tech stack
+## 🚀 Getting Started Locally
 
-| Layer | Choice |
-|---|---|
-| Framework | Next.js App Router, React Server Components |
-| Database | PostgreSQL via Prisma 7 |
-| Styling | Tailwind v4, semantic design tokens, light/dark via next-themes |
-| Charts | Recharts |
-| Validation | Zod |
-| Language | TypeScript throughout |
+### Prerequisites
+- Node.js 20+
+- Docker Desktop (for the local PostgreSQL instance)
+- A GitHub Personal Access Token (`GITHUB_TOKEN`)
 
-## Architecture
-
-```text
-GitHub API
-    │
-    ▼
-Sync layer → Postgres (Organization, Team, Repository, Contributor, Contribution, Issue)
-    │
-    ▼
-Feature-sliced queries (src/features/*) — server-only data access, typed
-    │
-    ▼
-App Router pages (RSC) → API routes for client-side refetching
-    │
-    ▼
-Client charts (Recharts) and interactive filters
+### 1. Boot the Database
+```bash
+docker compose up -d
 ```
 
-UI components never fetch their own data — pages call typed query functions in `src/features/*`, and components only render what they're given. See `codebase_map.md` for the full directory tree.
-
-## Getting started
-
+### 2. Environment Variables
+Copy the `.env.example` file to `.env` and fill in your GitHub Token.
 ```bash
-git clone https://github.com/OpenGovAfrica/oga-contributor-dashboard.git
-cd oga-contributor-dashboard
+cp .env.example .env
+```
 
+### 3. Database Migration & Seeding
+```bash
 npm install
-
-# 1. Set up environment variables
-cp .env.example .env      # Add your DATABASE_URL and a read-only GitHub token
-
-# 2. Start the local PostgreSQL database via Docker
-docker compose up -d
-
-# 3. Generate Prisma client & sync database schema
 npm run db:generate
-npx prisma db push
-
-# 4. Seed the database with realistic test data
+npm run db:migrate
 npm run db:seed
+```
 
-# 5. Start the development server
+### 4. Run the Sync Engine & App
+To pull live data from OpenGovAfrica repositories:
+```bash
 npm run dev
 ```
+Then navigate to `http://localhost:3000`.
 
-## Roadmap
+## 🧪 Testing & CI
+This project utilizes **Vitest** for lightning-fast unit testing of our core scoring algorithms and Zod parsing schemas.
+GitHub Actions will automatically run `npm run lint` and `npm run test` on all Pull Requests to the `main` branch.
 
-v1 scope and progress are tracked in [the v1 tracking issue](https://github.com/OpenGovAfrica/oga-contributor-dashboard/issues/1). Planned next: a GitHub App with webhooks for real-time sync, GitHub OAuth, contribution points/achievements, and embeddable contributor badges.
+```bash
+# Run unit tests locally
+npx vitest run
+```
 
-## Contributing
-
-Issues and PRs are welcome — start with the [tracking issue](https://github.com/OpenGovAfrica/oga-contributor-dashboard/issues/1) for current priorities. See `CONTRIBUTING.md` before opening a PR.
-
-## Maintainers
-
-Created and maintained by [Rohit Sharma](https://github.com/caffeine-rohit). Built for and used in production by [OpenGov Africa](https://github.com/OpenGovAfrica).
-
-## License
-
-MIT
+## 📜 License
+Internal OpenGovAfrica Tooling. All rights reserved.
