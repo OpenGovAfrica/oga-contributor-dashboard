@@ -145,8 +145,9 @@ export async function getVelocityTrend(
     orderBy: { committedAt: "asc" },
   });
 
-  // group raw contributions by day for the chart
   const byDate = new Map<string, VelocityDataPoint>();
+  
+  // populate actual data
   for (const c of contributions) {
     const key = c.committedAt.toISOString().slice(0, 10);
     const existing = byDate.get(key) ?? { date: key, commits: 0, pullRequests: 0, reviews: 0 };
@@ -222,6 +223,7 @@ export async function getIssueAnalytics(
   });
 
   const byDate = new Map<string, IssueDataPoint>();
+
   let totalOpened = 0;
   let totalClosed = 0;
 

@@ -1,5 +1,7 @@
 // src/app/(dashboard)/overview/page.tsx
 import type { Metadata } from "next";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 import { Suspense } from "react";
 import { Users, FolderGit2, GitPullRequest, CheckCircle2, ExternalLink, FileText, Flame } from "lucide-react";
 import { Topbar } from "@/components/layout/Topbar";

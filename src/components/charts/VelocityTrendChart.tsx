@@ -60,14 +60,11 @@ export function VelocityTrendChart({ data }: VelocityTrendChartProps) {
     );
   }
 
-  // Aggregate to weekly if data has >60 points for readability
-  const chartData =
-    data.length > 60
-      ? aggregateToWeekly(data)
-      : data.map((d) => ({
-          ...d,
-          date: formatDate(d.date),
-        }));
+  // The data is now guaranteed to be continuous daily data from the backend
+  const chartData = data.map((d) => ({
+    ...d,
+    date: formatDate(d.date),
+  }));
 
   return (
     <ResponsiveContainer width="100%" height={220}>
@@ -131,31 +128,4 @@ function formatDate(iso: string): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-function aggregateToWeekly(data: VelocityDataPoint[]): Array<{
-  date: string;
-  commits: number;
-  pullRequests: number;
-  reviews: number;
-}> {
-  const weeks = new Map<
-    string,
-    { commits: number; pullRequests: number; reviews: number }
-  >();
-  for (const d of data) {
-    const date = new Date(d.date);
-    const weekStart = new Date(date);
-    weekStart.setDate(date.getDate() - date.getDay());
-    const key = weekStart.toISOString().slice(0, 10);
-    const existing = weeks.get(key) ?? { commits: 0, pullRequests: 0, reviews: 0 };
-    existing.commits += d.commits;
-    existing.pullRequests += d.pullRequests;
-    existing.reviews += d.reviews;
-    weeks.set(key, existing);
-  }
-  return Array.from(weeks.entries())
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([date, counts]) => ({
-      date: formatDate(date),
-      ...counts,
-    }));
-}
+

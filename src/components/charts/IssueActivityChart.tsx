@@ -73,14 +73,11 @@ export function IssueActivityChart({ data, viewType = "bar" }: IssueActivityChar
     );
   }
 
-  // Aggregate to weekly if data has >30 points for better visual
-  const chartData =
-    data.length > 30
-      ? aggregateToWeekly(data)
-      : data.map((d) => ({
-        ...d,
-        date: formatDate(d.date),
-      }));
+  // Use daily data straight from the backend which is now pre-filled
+  const chartData = data.map((d) => ({
+    ...d,
+    date: formatDate(d.date),
+  }));
 
   return (
     <div ref={containerRef} className="flex flex-col h-full w-full">
@@ -114,27 +111,4 @@ export function IssueActivityChart({ data, viewType = "bar" }: IssueActivityChar
 function formatDate(iso: string): string {
   const d = new Date(iso);
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
-
-function aggregateToWeekly(data: IssueDataPoint[]): Array<any> {
-  const weeks = new Map<
-    string,
-    { opened: number; closed: number }
-  >();
-  for (const d of data) {
-    const date = new Date(d.date);
-    const weekStart = new Date(date);
-    weekStart.setDate(date.getDate() - date.getDay());
-    const key = weekStart.toISOString().slice(0, 10);
-    const existing = weeks.get(key) ?? { opened: 0, closed: 0 };
-    existing.opened += d.opened;
-    existing.closed += d.closed;
-    weeks.set(key, existing);
-  }
-  return Array.from(weeks.entries())
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([date, counts]) => ({
-      date: formatDate(date),
-      ...counts,
-    }));
 }

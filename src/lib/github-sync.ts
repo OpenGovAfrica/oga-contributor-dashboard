@@ -265,15 +265,15 @@ export async function runGitHubSync() {
         });
 
         for (const commit of commitsData) {
-          const authorUser = commit.author;
-          if (!authorUser) continue; // Skip if no github user linked
+          const authorLogin = commit.author?.login || commit.commit.author?.name || commit.commit.author?.email || "Unknown";
+          const authorAvatar = commit.author?.avatar_url || "";
 
           const contributor = await prisma.contributor.upsert({
-            where: { githubLogin: authorUser.login },
-            update: { avatarUrl: authorUser.avatar_url, lastActiveAt: new Date() },
+            where: { githubLogin: authorLogin },
+            update: { avatarUrl: authorAvatar, lastActiveAt: new Date() },
             create: {
-              githubLogin: authorUser.login,
-              avatarUrl: authorUser.avatar_url,
+              githubLogin: authorLogin,
+              avatarUrl: authorAvatar,
               organizationId: org.id,
             },
           });
