@@ -199,25 +199,32 @@ async function RecentPRSection({ window }: { window: TimeWindow }) {
           <div className="p-4 text-center text-xs text-[var(--color-text-muted)]">No PRs in this window.</div>
         ) : (
           prs.map(pr => (
-            <a key={pr.id} href={pr.githubUrl} target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 p-2 rounded-md hover:bg-[var(--color-panel-raised)] transition-colors">
-              <div className="w-7 h-7 rounded-full bg-[var(--color-overlay)] overflow-hidden shrink-0">
+            <a key={pr.id} href={pr.githubUrl} target="_blank" rel="noopener noreferrer" className="group relative flex items-start gap-3 p-2 rounded-md hover:bg-[var(--color-panel-raised)] transition-colors">
+              <div className="w-7 h-7 rounded-full bg-[var(--color-overlay)] overflow-hidden shrink-0 group-hover:opacity-30 transition-opacity">
                 {pr.authorAvatar ? (
                   <img src={pr.authorAvatar} alt={pr.authorLogin} className="w-full h-full object-cover" />
                 ) : (
                   <Users className="w-4 h-4 m-1.5 text-[var(--color-text-muted)]" />
                 )}
               </div>
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 group-hover:opacity-30 transition-opacity">
                 <p className="text-xs font-medium text-[var(--color-text-primary)] truncate">{pr.title}</p>
                 <p className="text-[10px] text-[var(--color-text-muted)] mt-0.5">{pr.authorLogin} • {formatRelativeDate(new Date(pr.createdAt))}</p>
               </div>
-              <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium ${
+              <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium group-hover:opacity-30 transition-opacity ${
                 pr.state === "MERGED" ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" :
                 pr.state === "CLOSED" ? "bg-red-500/10 text-red-500 border border-red-500/20" :
                 "bg-[var(--color-overlay)] text-[var(--color-text-secondary)] border border-[var(--color-border)]"
               }`}>
                 {pr.state}
               </span>
+
+              {/* Glassmorphic Hover Popup */}
+              <div className="absolute inset-x-1 top-1/2 -translate-y-1/2 z-50 opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-300 scale-95 group-hover:scale-100 rounded-lg p-3 bg-white/70 dark:bg-black/60 backdrop-blur-xl border border-[var(--color-border)] shadow-2xl shadow-black/20">
+                <p className="text-xs font-semibold text-[var(--color-text-primary)] text-center leading-relaxed">
+                  {pr.title}
+                </p>
+              </div>
             </a>
           ))
         )}
