@@ -81,7 +81,7 @@ export function Topbar({
           title="Refresh GitHub Data"
         >
           <RefreshCw className={cn("w-3.5 h-3.5", isSyncing && "animate-spin")} />
-          {isSyncing ? "Syncing... (~1 min)" : "Refresh Data"}
+          {isSyncing ? "Syncing..." : "Refresh Data"}
         </button>
 
         <div className="h-4 w-px bg-[var(--color-border)] mx-1" />
