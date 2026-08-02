@@ -14,7 +14,7 @@ export default async function SettingsPage() {
   
   const syncLookbackDays = state?.syncLookbackDays || 30;
   const autoSyncFrequency = state?.autoSyncFrequency || "manual";
-  const hasGithubPat = !!process.env.GITHUB_PAT;
+  const hasGithubPat = !!process.env.GH_PAT;
 
   return (
     <div className="flex flex-col min-h-full">

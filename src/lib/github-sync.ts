@@ -1,11 +1,9 @@
-// src/lib/github-sync.ts
-import { Octokit } from "octokit";
 import prisma from "./prisma";
 
-export async function runGitHubSync() {
-  const token = process.env.GITHUB_PAT;
+export async function runGitHubSync(forceFull: boolean = false) {
+  const token = process.env.GH_PAT;
   if (!token) {
-    throw new Error("Missing GITHUB_PAT environment variable. Cannot sync.");
+    throw new Error("Missing GH_PAT environment variable. Cannot sync.");
   }
 
   // Fetch Settings from DB
@@ -22,6 +20,7 @@ export async function runGitHubSync() {
   const ORG_LOGIN = systemState.targetOrg;
   const SYNC_DAYS_LOOKBACK = systemState.syncLookbackDays;
 
+  const { Octokit } = await import("octokit");
   const octokit = new Octokit({ 
     auth: token,
     request: {
@@ -99,11 +98,34 @@ export async function runGitHubSync() {
     });
 
     let sinceDate = new Date();
-    // Force full sync to backfill PRs
-    sinceDate.setDate(sinceDate.getDate() - SYNC_DAYS_LOOKBACK);
+    
+    if (forceFull) {
+      // Deep Sync: Force full sync to backfill PRs and Commits
+      sinceDate.setDate(sinceDate.getDate() - SYNC_DAYS_LOOKBACK);
+    } else {
+      // Delta Sync: Fetch only what changed since the last successful sync
+      sinceDate = new Date(systemState.lastSyncAt);
+      
+      // Fallback to full sync if the database is completely empty/new (1970)
+      if (sinceDate.getTime() === 0) {
+        sinceDate = new Date();
+        sinceDate.setDate(sinceDate.getDate() - SYNC_DAYS_LOOKBACK);
+      } else {
+        // Subtract 5 minutes to gracefully handle any GitHub API indexing delays
+        sinceDate.setMinutes(sinceDate.getMinutes() - 5);
+      }
+    }
+    
     const sinceIso = sinceDate.toISOString();
 
     for (const repo of reposData.data) {
+      // Delta Sync Optimization: Skip repositories that have had absolutely zero activity 
+      // (no pushes, no issue comments, no PRs) since our target window.
+      const repoUpdatedAt = new Date(repo.updated_at || 0);
+      if (!forceFull && repoUpdatedAt < sinceDate) {
+        continue;
+      }
+
       // Upsert Repo
       const dbRepo = await prisma.repository.upsert({
         where: { githubRepoId: repo.id },

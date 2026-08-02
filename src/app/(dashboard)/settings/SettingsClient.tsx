@@ -227,7 +227,7 @@ export function SettingsClient({ initialLookback, initialFrequency, hasGithubPat
                   <div>
                     <h4 className="text-sm font-medium text-[var(--color-text-primary)]">Personal Access Token (PAT)</h4>
                     <p className="text-xs text-[var(--color-text-muted)]">
-                      {hasGithubPat ? "Token is securely loaded from environment variables." : "Missing GITHUB_PAT in environment variables."}
+                      {hasGithubPat ? "Token is securely loaded from environment variables." : "Missing GH_PAT in environment variables."}
                     </p>
                   </div>
                   {hasGithubPat && (
@@ -300,58 +300,23 @@ export function SettingsClient({ initialLookback, initialFrequency, hasGithubPat
         {activeTab === "advanced" && (
           <div className="space-y-8 animate-fade-in">
             
-            {/* Purge Data Card */}
+            {/* Enterprise Automation Card */}
             <div className="panel overflow-hidden border border-[var(--color-border)] rounded-xl">
               <div className="p-6">
-                <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-1">Purge Sync Data</h3>
-                <p className="text-sm text-[var(--color-text-muted)] mb-4">
-                  Deletes all Repositories, Contributors, Issues, and Contributions. Your Organization, Teams, and System Settings will be preserved. Use this if your data is corrupted or you want a fresh sync.
-                </p>
-              </div>
-              <div className="bg-[var(--color-panel-raised)] px-6 py-4 flex items-center justify-between border-t border-[var(--color-border)]">
-                <p className="text-xs text-[var(--color-text-muted)]">This action cannot be undone.</p>
-                <button 
-                  onClick={handlePurgeClick}
-                  disabled={isPending}
-                  className="flex items-center gap-2 text-sm font-medium px-4 py-2.5 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] hover:bg-[var(--color-overlay)] transition-colors shadow-sm"
-                >
-                  <RefreshCw className="w-4 h-4" /> Purge Cache
-                </button>
-              </div>
-            </div>
-
-            {/* Factory Reset Card */}
-            <div className="panel overflow-hidden border border-red-500/50 rounded-xl shadow-[0_0_0_1px_rgba(239,68,68,0.1)]">
-              <div className="p-6">
-                <h3 className="text-lg font-semibold text-red-600 dark:text-red-500 mb-1">Factory Reset System</h3>
+                <div className="flex items-center gap-2 mb-2">
+                  <CheckCircle2 className="w-5 h-5 text-[var(--color-brand)]" />
+                  <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Enterprise Automation Enabled</h3>
+                </div>
                 <p className="text-sm text-[var(--color-text-muted)] mb-6">
-                  Permanently destroys all data in the database, including Settings, Teams, and the Organization. The app will return to a completely blank slate.
+                  The OGA Dashboard utilizes a Delta-Sync architecture for manual refreshes to prevent API timeouts. Deep backfills and data healing operations are handled entirely by an automated GitHub Action that runs every 6 hours.
                 </p>
                 
-                <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/50 rounded-lg p-4">
-                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-                    To verify, type <span className="font-mono font-bold select-all bg-[var(--color-overlay)] px-1 py-0.5 rounded text-red-600 dark:text-red-500">{targetOrg}</span> below:
-                  </label>
-                  <input
-                    type="text"
-                    value={confirmOrg}
-                    onChange={(e) => setConfirmOrg(e.target.value)}
-                    className="w-full max-w-sm bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-md px-3 py-2.5 focus:outline-none focus:border-red-500 transition-colors"
-                    placeholder={`Type ${targetOrg} to confirm`}
-                  />
+                <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg p-4">
+                   <h4 className="text-sm font-medium text-[var(--color-text-primary)] mb-1">Manual Data Purging & Factory Resets</h4>
+                   <p className="text-xs text-[var(--color-text-secondary)]">
+                     Destructive operations like wiping the database have been securely moved off the frontend to prevent accidental data loss. If you require a hard factory reset, please execute the deep-sync script directly via the CI/CD pipeline or server console.
+                   </p>
                 </div>
-              </div>
-              
-              <div className="bg-red-50/50 dark:bg-[#1a0f12] px-6 py-4 flex items-center justify-between border-t border-red-500/20">
-                <p className="text-xs text-red-600/70 dark:text-red-500/70">Warning: This will immediately delete everything.</p>
-                <button 
-                  onClick={handleFactoryReset}
-                  disabled={isPending || confirmOrg !== targetOrg}
-                  className="flex items-center gap-2 text-sm font-medium px-5 py-2.5 rounded-md bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:bg-red-800 disabled:cursor-not-allowed transition-colors shadow-sm"
-                >
-                  {isPending ? <RefreshCw className="w-4 h-4 animate-spin" /> : null}
-                  Factory Reset
-                </button>
               </div>
             </div>
 

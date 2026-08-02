@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     // TODO(v2): Implement strict CRON_SECRET authorization headers to prevent unauthenticated trigger spam.
     // For local MVP execution, bypassing auth block.
 
-    const result = await runGitHubSync();
+    const result = await runGitHubSync(false);
     
     // Purge the entire Next.js Router Cache globally so the dashboard instantly shows fresh data
     revalidatePath("/", "layout");
